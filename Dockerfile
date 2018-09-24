@@ -1,12 +1,14 @@
-FROM beardedeagle/alpine-erlang-builder:21.0.6 as base_stage
+FROM beardedeagle/alpine-erlang-builder:21.0.9 as base_stage
 
 LABEL maintainer="beardedeagle <randy@heroictek.com>"
 
 # Important!  Update this no-op ENV variable when this Dockerfile
 # is updated with the current date. It will force refresh of all
 # of the base images.
-ENV REFRESHED_AT=2018-08-24b \
+ENV REFRESHED_AT=2018-09-24 \
   ELIXIR_VER=1.7.3 \
+  REBAR2_VER=2.6.4 \
+  REBAR3_VER=3.6.2 \
   MIX_HOME=/usr/local/lib/elixir/.mix \
   TERM=xterm \
   LANG=C.UTF-8
@@ -53,15 +55,46 @@ RUN set -xe \
   && find /usr/local -name src | xargs -r find | xargs rmdir -vp || true \
   && scanelf --nobanner -E ET_EXEC -BF '%F' --recursive /usr/local | xargs -r strip --strip-all \
   && scanelf --nobanner -E ET_DYN -BF '%F' --recursive /usr/local | xargs -r strip --strip-unneeded \
-  && mix local.hex --force \
-  && mix local.rebar --force
+  && mix local.hex --force
+
+FROM elixir_stage as rebar2_stage
+
+RUN set -xe \
+  && REBAR_DOWNLOAD_URL="https://github.com/rebar/rebar/archive/${REBAR2_VER}.tar.gz" \
+  && REBAR_DOWNLOAD_SHA256="577246bafa2eb2b2c3f1d0c157408650446884555bf87901508ce71d5cc0bd07" \
+  && curl -fSL -o rebar-src.tar.gz "$REBAR_DOWNLOAD_URL" \
+  && echo "$REBAR_DOWNLOAD_SHA256  rebar-src.tar.gz" | sha256sum -c - \
+  && mkdir -p /usr/src/rebar-src \
+  && tar -xzf rebar-src.tar.gz -C /usr/src/rebar-src --strip-components=1 \
+  && rm rebar-src.tar.gz \
+  && cd /usr/src/rebar-src \
+  && ./bootstrap \
+  && mix local.rebar rebar ./rebar
+
+FROM elixir_stage as rebar3_stage
+
+RUN set -xe \
+  && REBAR3_DOWNLOAD_URL="https://github.com/erlang/rebar3/archive/${REBAR3_VER}.tar.gz" \
+  && REBAR3_DOWNLOAD_SHA256="7f358170025b54301bce9a10ec7ad07d4e88a80eaa7b977b73b32b45ea0b626e" \
+  && curl -fSL -o rebar3-src.tar.gz "$REBAR3_DOWNLOAD_URL" \
+  && echo "$REBAR3_DOWNLOAD_SHA256  rebar3-src.tar.gz" | sha256sum -c - \
+  && mkdir -p /usr/src/rebar3-src \
+  && tar -xzf rebar3-src.tar.gz -C /usr/src/rebar3-src --strip-components=1 \
+  && rm rebar3-src.tar.gz \
+  && cd /usr/src/rebar3-src \
+  && HOME=$PWD ./bootstrap \
+  && mix local.rebar rebar3 ./rebar3
 
 FROM deps_stage as stage
 
 COPY --from=elixir_stage /usr/local /opt/elixir
+COPY --from=rebar2_stage /usr/local /opt/rebar2
+COPY --from=rebar3_stage /usr/local /opt/rebar3
 
 RUN set -xe \
   && rsync -a /opt/elixir/ /usr/local \
+  && rsync -a /opt/rebar2/ /usr/local \
+  && rsync -a /opt/rebar3/ /usr/local \
   && apk del .build-deps \
   && rm -rf /root/.cache \
   && rm -rf /var/cache/apk/*
