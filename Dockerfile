@@ -1,11 +1,11 @@
-FROM beardedeagle/alpine-erlang-builder:21.0.9 as base_stage
+FROM alpine:3.8 as base_stage
 
 LABEL maintainer="beardedeagle <randy@heroictek.com>"
 
 # Important!  Update this no-op ENV variable when this Dockerfile
 # is updated with the current date. It will force refresh of all
 # of the base images.
-ENV REFRESHED_AT=2018-09-24 \
+ENV REFRESHED_AT=2018-10-14 \
   ELIXIR_VER=1.7.3 \
   REBAR2_VER=2.6.4 \
   REBAR3_VER=3.6.2 \
@@ -14,12 +14,26 @@ ENV REFRESHED_AT=2018-09-24 \
   LANG=C.UTF-8
 
 RUN set -xe \
-  && rm -rf /usr/local/bin/rebar \
-  && rm -rf /usr/local/bin/rebar3
+  && apk --update --no-cache upgrade \
+  && apk add --no-cache \
+    bash \
+    libressl \
+    lksctp-tools \
+  && rm -rf /root/.cache \
+  && rm -rf /var/cache/apk/*
 
-FROM base_stage as deps_stage
+FROM beardedeagle/alpine-erlang-builder:21.1.1 as deps_stage
+
+ENV ELIXIR_VER=1.7.3 \
+  REBAR2_VER=2.6.4 \
+  REBAR3_VER=3.6.2 \
+  MIX_HOME=/usr/local/lib/elixir/.mix \
+  TERM=xterm \
+  LANG=C.UTF-8
 
 RUN set -xe \
+  && rm -rf /usr/local/bin/rebar \
+  && rm -rf /usr/local/bin/rebar3 \
   && apk add --no-cache --virtual .build-deps \
     autoconf \
     binutils-gold \
