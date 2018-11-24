@@ -5,10 +5,11 @@ LABEL maintainer="beardedeagle <randy@heroictek.com>"
 # Important!  Update this no-op ENV variable when this Dockerfile
 # is updated with the current date. It will force refresh of all
 # of the base images.
-ENV REFRESHED_AT=2018-11-17 \
+ENV REFRESHED_AT=2018-11-23 \
   ELIXIR_VER=1.7.4 \
+  HEX_VER=0.18.2 \
   REBAR2_VER=2.6.4 \
-  REBAR3_VER=3.6.2 \
+  REBAR3_VER=3.7.2 \
   MIX_HOME=/usr/local/lib/elixir/.mix \
   TERM=xterm \
   LANG=C.UTF-8
@@ -22,11 +23,12 @@ RUN set -xe \
   && rm -rf /root/.cache \
   && rm -rf /var/cache/apk/*
 
-FROM beardedeagle/alpine-erlang-builder:21.1.2 as deps_stage
+FROM beardedeagle/alpine-erlang-builder:21.1.3 as deps_stage
 
 ENV ELIXIR_VER=1.7.4 \
+  HEX_VER=0.18.2 \
   REBAR2_VER=2.6.4 \
-  REBAR3_VER=3.6.2 \
+  REBAR3_VER=3.7.2 \
   MIX_HOME=/usr/local/lib/elixir/.mix \
   TERM=xterm \
   LANG=C.UTF-8
@@ -68,8 +70,20 @@ RUN set -xe \
   && find /usr/local -name src | xargs -r find | grep -v '\.hrl$' | xargs rm -v || true \
   && find /usr/local -name src | xargs -r find | xargs rmdir -vp || true \
   && scanelf --nobanner -E ET_EXEC -BF '%F' --recursive /usr/local | xargs -r strip --strip-all \
-  && scanelf --nobanner -E ET_DYN -BF '%F' --recursive /usr/local | xargs -r strip --strip-unneeded \
-  && mix local.hex --force
+  && scanelf --nobanner -E ET_DYN -BF '%F' --recursive /usr/local | xargs -r strip --strip-unneeded
+
+FROM elixir_stage as hex_stage
+
+RUN set -xe \
+  && HEX_DOWNLOAD_URL="https://github.com/hexpm/hex/archive/v${HEX_VER}.tar.gz" \
+  && HEX_DOWNLOAD_SHA256="526d2e14947845fc05878e6b6c600e88992b4c06271e2a101e8141e8146f4ff7" \
+  && curl -fSL -o hex-src.tar.gz "$HEX_DOWNLOAD_URL" \
+  && echo "$HEX_DOWNLOAD_SHA256  hex-src.tar.gz" | sha256sum -c - \
+  && mkdir -p /usr/src/hex-src \
+  && tar -xzf hex-src.tar.gz -C /usr/src/hex-src --strip-components=1 \
+  && rm hex-src.tar.gz \
+  && cd /usr/src/hex-src \
+  && mix install
 
 FROM elixir_stage as rebar2_stage
 
@@ -89,7 +103,7 @@ FROM elixir_stage as rebar3_stage
 
 RUN set -xe \
   && REBAR3_DOWNLOAD_URL="https://github.com/erlang/rebar3/archive/${REBAR3_VER}.tar.gz" \
-  && REBAR3_DOWNLOAD_SHA256="7f358170025b54301bce9a10ec7ad07d4e88a80eaa7b977b73b32b45ea0b626e" \
+  && REBAR3_DOWNLOAD_SHA256="1a68da5a6ee07e587bf51321f57a9ff9c06df6376bef775c2a84bd98dc228072" \
   && curl -fSL -o rebar3-src.tar.gz "$REBAR3_DOWNLOAD_URL" \
   && echo "$REBAR3_DOWNLOAD_SHA256  rebar3-src.tar.gz" | sha256sum -c - \
   && mkdir -p /usr/src/rebar3-src \
@@ -102,11 +116,13 @@ RUN set -xe \
 FROM deps_stage as stage
 
 COPY --from=elixir_stage /usr/local /opt/elixir
+COPY --from=hex_stage /usr/local /opt/hex
 COPY --from=rebar2_stage /usr/local /opt/rebar2
 COPY --from=rebar3_stage /usr/local /opt/rebar3
 
 RUN set -xe \
   && rsync -a /opt/elixir/ /usr/local \
+  && rsync -a /opt/hex/ /usr/local \
   && rsync -a /opt/rebar2/ /usr/local \
   && rsync -a /opt/rebar3/ /usr/local \
   && apk del .build-deps \
