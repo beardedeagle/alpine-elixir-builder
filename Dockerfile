@@ -5,7 +5,7 @@ LABEL maintainer="beardedeagle <randy@heroictek.com>"
 # Important!  Update this no-op ENV variable when this Dockerfile
 # is updated with the current date. It will force refresh of all
 # of the base images.
-ENV REFRESHED_AT=2018-11-23 \
+ENV REFRESHED_AT=2018-11-23a \
   ELIXIR_VER=1.7.4 \
   HEX_VER=0.18.2 \
   REBAR2_VER=2.6.4 \
@@ -64,7 +64,7 @@ RUN set -xe \
   && rm elixir-src.tar.gz \
   && ( cd $ELIXIR_TOP \
     && make -j$(getconf _NPROCESSORS_ONLN) \
-    && make install ) \
+    && make install clean ) \
   && rm -rf $ELIXIR_TOP \
   && find /usr/local -regex '/usr/local/lib/elixir/\(lib/\|erts-\).*/\(man\|doc\|obj\|c_src\|emacs\|info\|examples\)' | xargs rm -rf \
   && find /usr/local -name src | xargs -r find | grep -v '\.hrl$' | xargs rm -v || true \
@@ -83,7 +83,7 @@ RUN set -xe \
   && tar -xzf hex-src.tar.gz -C /usr/src/hex-src --strip-components=1 \
   && rm hex-src.tar.gz \
   && cd /usr/src/hex-src \
-  && mix install
+  && MIX_ENV=prod mix install
 
 FROM elixir_stage as rebar2_stage
 
@@ -97,7 +97,7 @@ RUN set -xe \
   && rm rebar-src.tar.gz \
   && cd /usr/src/rebar-src \
   && ./bootstrap \
-  && mix local.rebar rebar ./rebar
+  && MIX_ENV=prod mix local.rebar rebar ./rebar
 
 FROM elixir_stage as rebar3_stage
 
@@ -111,7 +111,7 @@ RUN set -xe \
   && rm rebar3-src.tar.gz \
   && cd /usr/src/rebar3-src \
   && HOME=$PWD ./bootstrap \
-  && mix local.rebar rebar3 ./rebar3
+  && MIX_ENV=prod mix local.rebar rebar3 ./rebar3
 
 FROM deps_stage as stage
 
