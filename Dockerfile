@@ -5,11 +5,11 @@ LABEL maintainer="beardedeagle <randy@heroictek.com>"
 # Important!  Update this no-op ENV variable when this Dockerfile
 # is updated with the current date. It will force refresh of all
 # of the base images.
-ENV REFRESHED_AT=2018-11-24 \
+ENV REFRESHED_AT=2018-11-27 \
   ELIXIR_VER=1.7.4 \
   HEX_VER=0.18.2 \
   REBAR2_VER=2.6.4 \
-  REBAR3_VER=3.7.4 \
+  REBAR3_VER=3.7.5 \
   MIX_HOME=/usr/local/lib/elixir/.mix \
   TERM=xterm \
   LANG=C.UTF-8
@@ -28,7 +28,7 @@ FROM beardedeagle/alpine-erlang-builder:21.1.3 as deps_stage
 ENV ELIXIR_VER=1.7.4 \
   HEX_VER=0.18.2 \
   REBAR2_VER=2.6.4 \
-  REBAR3_VER=3.7.4 \
+  REBAR3_VER=3.7.5 \
   MIX_HOME=/usr/local/lib/elixir/.mix \
   TERM=xterm \
   LANG=C.UTF-8
@@ -103,7 +103,7 @@ FROM elixir_stage as rebar3_stage
 
 RUN set -xe \
   && REBAR3_DOWNLOAD_URL="https://github.com/erlang/rebar3/archive/${REBAR3_VER}.tar.gz" \
-  && REBAR3_DOWNLOAD_SHA256="3747ef351999caec65304839ecd9324ac8eec8c38210fb43dc598e3caed0a2c0" \
+  && REBAR3_DOWNLOAD_SHA256="46d9991c8af1dc85a1de8edc6618c3e6dc9c3de60c67e8139a98d2e4c2d047ad" \
   && curl -fSL -o rebar3-src.tar.gz "$REBAR3_DOWNLOAD_URL" \
   && echo "$REBAR3_DOWNLOAD_SHA256  rebar3-src.tar.gz" | sha256sum -c - \
   && mkdir -p /usr/src/rebar3-src \
