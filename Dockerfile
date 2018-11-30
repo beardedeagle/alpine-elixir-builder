@@ -5,7 +5,7 @@ LABEL maintainer="beardedeagle <randy@heroictek.com>"
 # Important!  Update this no-op ENV variable when this Dockerfile
 # is updated with the current date. It will force refresh of all
 # of the base images.
-ENV REFRESHED_AT=2018-11-27 \
+ENV REFRESHED_AT=2018-11-30 \
   ELIXIR_VER=1.7.4 \
   HEX_VER=0.18.2 \
   REBAR2_VER=2.6.4 \
@@ -23,7 +23,7 @@ RUN set -xe \
   && rm -rf /root/.cache \
   && rm -rf /var/cache/apk/*
 
-FROM beardedeagle/alpine-erlang-builder:21.1.3 as deps_stage
+FROM beardedeagle/alpine-erlang-builder:21.1.4 as deps_stage
 
 ENV ELIXIR_VER=1.7.4 \
   HEX_VER=0.18.2 \
