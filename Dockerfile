@@ -5,9 +5,9 @@ LABEL maintainer="beardedeagle <randy@heroictek.com>"
 # Important!  Update this no-op ENV variable when this Dockerfile
 # is updated with the current date. It will force refresh of all
 # of the base images.
-ENV REFRESHED_AT=2019-01-14 \
+ENV REFRESHED_AT=2019-01-19 \
   ELIXIR_VER=1.8.0 \
-  HEX_VER=0.18.2 \
+  HEX_VER=0.19.0 \
   REBAR2_VER=2.6.4 \
   REBAR3_VER=3.8.0 \
   MIX_HOME=/usr/local/lib/elixir/.mix \
@@ -23,10 +23,10 @@ RUN set -xe \
   && rm -rf /root/.cache \
   && rm -rf /var/cache/apk/*
 
-FROM beardedeagle/alpine-erlang-builder:21.2.2 as deps_stage
+FROM beardedeagle/alpine-erlang-builder:21.2.3 as deps_stage
 
 ENV ELIXIR_VER=1.8.0 \
-  HEX_VER=0.18.2 \
+  HEX_VER=0.19.0 \
   REBAR2_VER=2.6.4 \
   REBAR3_VER=3.8.0 \
   MIX_HOME=/usr/local/lib/elixir/.mix \
@@ -76,7 +76,7 @@ FROM elixir_stage as hex_stage
 
 RUN set -xe \
   && HEX_DOWNLOAD_URL="https://github.com/hexpm/hex/archive/v${HEX_VER}.tar.gz" \
-  && HEX_DOWNLOAD_SHA256="526d2e14947845fc05878e6b6c600e88992b4c06271e2a101e8141e8146f4ff7" \
+  && HEX_DOWNLOAD_SHA256="31f78e75483d27e8636be346e153aaed72e6529f13859f84a6b54718a8ef2ba9" \
   && curl -fSL -o hex-src.tar.gz "$HEX_DOWNLOAD_URL" \
   && echo "$HEX_DOWNLOAD_SHA256  hex-src.tar.gz" | sha256sum -c - \
   && mkdir -p /usr/src/hex-src \
