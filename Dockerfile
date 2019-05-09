@@ -5,11 +5,10 @@ LABEL maintainer="beardedeagle <randy@heroictek.com>"
 # Important!  Update this no-op ENV variable when this Dockerfile
 # is updated with the current date. It will force refresh of all
 # of the base images.
-ENV REFRESHED_AT=2019-01-30 \
+ENV REFRESHED_AT=2019-05-08 \
   ELIXIR_VER=1.8.1 \
   HEX_VER=0.19.0 \
-  REBAR2_VER=2.6.4 \
-  REBAR3_VER=3.8.0 \
+  REBAR3_VER=3.10.0 \
   MIX_HOME=/usr/local/lib/elixir/.mix \
   TERM=xterm \
   LANG=C.UTF-8
@@ -23,12 +22,11 @@ RUN set -xe \
   && rm -rf /root/.cache \
   && rm -rf /var/cache/apk/*
 
-FROM beardedeagle/alpine-erlang-builder:21.2.4 as deps_stage
+FROM beardedeagle/alpine-erlang-builder:21.3.8 as deps_stage
 
 ENV ELIXIR_VER=1.8.1 \
   HEX_VER=0.19.0 \
-  REBAR2_VER=2.6.4 \
-  REBAR3_VER=3.8.0 \
+  REBAR3_VER=3.10.0 \
   MIX_HOME=/usr/local/lib/elixir/.mix \
   TERM=xterm \
   LANG=C.UTF-8
@@ -85,25 +83,11 @@ RUN set -xe \
   && cd /usr/src/hex-src \
   && MIX_ENV=prod mix install
 
-FROM elixir_stage as rebar2_stage
-
-RUN set -xe \
-  && REBAR_DOWNLOAD_URL="https://github.com/rebar/rebar/archive/${REBAR2_VER}.tar.gz" \
-  && REBAR_DOWNLOAD_SHA256="577246bafa2eb2b2c3f1d0c157408650446884555bf87901508ce71d5cc0bd07" \
-  && curl -fSL -o rebar-src.tar.gz "$REBAR_DOWNLOAD_URL" \
-  && echo "$REBAR_DOWNLOAD_SHA256  rebar-src.tar.gz" | sha256sum -c - \
-  && mkdir -p /usr/src/rebar-src \
-  && tar -xzf rebar-src.tar.gz -C /usr/src/rebar-src --strip-components=1 \
-  && rm rebar-src.tar.gz \
-  && cd /usr/src/rebar-src \
-  && ./bootstrap \
-  && MIX_ENV=prod mix local.rebar rebar ./rebar
-
 FROM elixir_stage as rebar3_stage
 
 RUN set -xe \
   && REBAR3_DOWNLOAD_URL="https://github.com/erlang/rebar3/archive/${REBAR3_VER}.tar.gz" \
-  && REBAR3_DOWNLOAD_SHA256="fc4d08037d39bcc651a4a749f8a5b1a10b2205527df834c2aee8f60725c3f431" \
+  && REBAR3_DOWNLOAD_SHA256="656b4a0bd75f340173e67a33c92e4d422b5ccf054f93ba35a9d780b545ee827e" \
   && curl -fSL -o rebar3-src.tar.gz "$REBAR3_DOWNLOAD_URL" \
   && echo "$REBAR3_DOWNLOAD_SHA256  rebar3-src.tar.gz" | sha256sum -c - \
   && mkdir -p /usr/src/rebar3-src \
@@ -117,13 +101,11 @@ FROM deps_stage as stage
 
 COPY --from=elixir_stage /usr/local /opt/elixir
 COPY --from=hex_stage /usr/local /opt/hex
-COPY --from=rebar2_stage /usr/local /opt/rebar2
 COPY --from=rebar3_stage /usr/local /opt/rebar3
 
 RUN set -xe \
   && rsync -a /opt/elixir/ /usr/local \
   && rsync -a /opt/hex/ /usr/local \
-  && rsync -a /opt/rebar2/ /usr/local \
   && rsync -a /opt/rebar3/ /usr/local \
   && apk del .build-deps \
   && rm -rf /root/.cache \
