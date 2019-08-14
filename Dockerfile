@@ -1,12 +1,12 @@
-FROM alpine:3.9.4 as base_stage
+FROM alpine:3.10.1 as base_stage
 
 LABEL maintainer="beardedeagle <randy@heroictek.com>"
 
 # Important!  Update this no-op ENV variable when this Dockerfile
 # is updated with the current date. It will force refresh of all
 # of the base images.
-ENV REFRESHED_AT=2019-06-24 \
-  ELIXIR_VER=1.9.0 \
+ENV REFRESHED_AT=2019-08-14 \
+  ELIXIR_VER=1.9.1 \
   HEX_VER=0.20.1 \
   REBAR3_VER=3.11.1 \
   MIX_HOME=/usr/local/lib/elixir/.mix \
@@ -22,9 +22,9 @@ RUN set -xe \
   && rm -rf /root/.cache \
   && rm -rf /var/cache/apk/*
 
-FROM beardedeagle/alpine-erlang-builder:22.0.4 as deps_stage
+FROM beardedeagle/alpine-erlang-builder:22.0.7 as deps_stage
 
-ENV ELIXIR_VER=1.9.0 \
+ENV ELIXIR_VER=1.9.1 \
   HEX_VER=0.20.1 \
   REBAR3_VER=3.11.1 \
   MIX_HOME=/usr/local/lib/elixir/.mix \
@@ -53,7 +53,7 @@ FROM deps_stage as elixir_stage
 
 RUN set -xe \
   && ELIXIR_DOWNLOAD_URL="https://github.com/elixir-lang/elixir/archive/v${ELIXIR_VER}.tar.gz" \
-  && ELIXIR_DOWNLOAD_SHA256="dbf4cb66634e22d60fe4aa162946c992257f700c7db123212e7e29d1c0b0c487" \
+  && ELIXIR_DOWNLOAD_SHA256="94daa716abbd4493405fb2032514195077ac7bc73dc2999922f13c7d8ea58777" \
   && curl -fSL -o elixir-src.tar.gz "$ELIXIR_DOWNLOAD_URL" \
   && echo "$ELIXIR_DOWNLOAD_SHA256  elixir-src.tar.gz" | sha256sum -c - \
   && export ELIXIR_TOP="/usr/src/elixir_src_${ELIXIR_VER%%@*}" \
