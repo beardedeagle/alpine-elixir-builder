@@ -1,14 +1,14 @@
-FROM alpine:3.11.3 as base_stage
+FROM alpine:3.12.0 as base_stage
 
 LABEL maintainer="beardedeagle <randy@heroictek.com>"
 
 # Important!  Update this no-op ENV variable when this Dockerfile
 # is updated with the current date. It will force refresh of all
 # of the base images.
-ENV REFRESHED_AT=2020-01-29 \
-  ELIXIR_VER=1.10.0 \
-  HEX_VER=0.20.1 \
-  REBAR3_VER=3.13.0 \
+ENV REFRESHED_AT=2020-07-16 \
+  ELIXIR_VER=1.10.4 \
+  HEX_VER=0.20.5 \
+  REBAR3_VER=3.13.2 \
   MIX_HOME=/usr/local/lib/elixir/.mix \
   TERM=xterm \
   LANG=C.UTF-8
@@ -22,11 +22,11 @@ RUN set -xe \
   && rm -rf /root/.cache \
   && rm -rf /var/cache/apk/*
 
-FROM beardedeagle/alpine-erlang-builder:22.2.4 as deps_stage
+FROM beardedeagle/alpine-erlang-builder:23.0.2 as deps_stage
 
-ENV ELIXIR_VER=1.10.0 \
-  HEX_VER=0.20.1 \
-  REBAR3_VER=3.13.0 \
+ENV ELIXIR_VER=1.10.4 \
+  HEX_VER=0.20.5 \
+  REBAR3_VER=3.13.2 \
   MIX_HOME=/usr/local/lib/elixir/.mix \
   TERM=xterm \
   LANG=C.UTF-8
@@ -53,7 +53,7 @@ FROM deps_stage as elixir_stage
 
 RUN set -xe \
   && ELIXIR_DOWNLOAD_URL="https://github.com/elixir-lang/elixir/archive/v${ELIXIR_VER}.tar.gz" \
-  && ELIXIR_DOWNLOAD_SHA256="6f0d35acfcbede5ef7dced3e37f016fd122c2779000ca9dcaf92975b220737b7" \
+  && ELIXIR_DOWNLOAD_SHA256="8518c78f43fe36315dbe0d623823c2c1b7a025c114f3f4adbb48e04ef63f1d9f" \
   && curl -fSL -o elixir-src.tar.gz "$ELIXIR_DOWNLOAD_URL" \
   && echo "$ELIXIR_DOWNLOAD_SHA256  elixir-src.tar.gz" | sha256sum -c - \
   && export ELIXIR_TOP="/usr/src/elixir_src_${ELIXIR_VER%%@*}" \
@@ -74,7 +74,7 @@ FROM elixir_stage as hex_stage
 
 RUN set -xe \
   && HEX_DOWNLOAD_URL="https://github.com/hexpm/hex/archive/v${HEX_VER}.tar.gz" \
-  && HEX_DOWNLOAD_SHA256="6af8bda12e3c81d15b9d274c1ab2d6afd9a40e28c1db7bb50baf79b6a73bb3ea" \
+  && HEX_DOWNLOAD_SHA256="b88dbccfeeef83f68ec4e9f457874177dd8b0497d533b8040528dad14a8808ba" \
   && curl -fSL -o hex-src.tar.gz "$HEX_DOWNLOAD_URL" \
   && echo "$HEX_DOWNLOAD_SHA256  hex-src.tar.gz" | sha256sum -c - \
   && mkdir -p /usr/src/hex-src \
@@ -87,7 +87,7 @@ FROM elixir_stage as rebar3_stage
 
 RUN set -xe \
   && REBAR3_DOWNLOAD_URL="https://github.com/erlang/rebar3/archive/${REBAR3_VER}.tar.gz" \
-  && REBAR3_DOWNLOAD_SHA256="49ecf89d04676d077712a10d8252bbda73998a3badf8b342481530fbc685a123" \
+  && REBAR3_DOWNLOAD_SHA256="e14cdc1f5b7d363a238a9f555f89e878bc4fc836c970571b41b90ee947f91505" \
   && curl -fSL -o rebar3-src.tar.gz "$REBAR3_DOWNLOAD_URL" \
   && echo "$REBAR3_DOWNLOAD_SHA256  rebar3-src.tar.gz" | sha256sum -c - \
   && mkdir -p /usr/src/rebar3-src \
