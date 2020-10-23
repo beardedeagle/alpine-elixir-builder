@@ -4,6 +4,7 @@
 .gitignore
 .sonarlint
 .vscode
+CONTRIBUTORS.md
 dive.log
 Dockerfile
 LICENSE
