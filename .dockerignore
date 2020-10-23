@@ -9,4 +9,5 @@ Dockerfile
 LICENSE
 Makefile
 README.md
+slim.report.json
 VERSION
