@@ -1,14 +1,14 @@
-FROM alpine:3.12.1 as base_stage
+FROM alpine:3.13.1 as base_stage
 
 LABEL maintainer="beardedeagle <randy@heroictek.com>"
 
 # Important! Update this no-op ENV variable when this Dockerfile
 # is updated with the current date. It will force refresh of all
 # of the base images.
-ENV REFRESHED_AT=2020-11-05 \
-  ELIXIR_VER=1.11.2 \
-  HEX_VER=0.20.6 \
-  REBAR3_VER=3.14.1 \
+ENV REFRESHED_AT=2021-02-02 \
+  ELIXIR_VER=1.11.3 \
+  HEX_VER=0.21.1 \
+  REBAR3_VER=3.14.3 \
   MIX_HOME=/usr/local/lib/elixir/.mix \
   TERM=xterm \
   LANG=C.UTF-8
@@ -16,16 +16,20 @@ ENV REFRESHED_AT=2020-11-05 \
 RUN set -xe \
   && apk --no-cache update \
   && apk --no-cache upgrade \
-  && apk add --no-cache bash git openssl zlib \
+  && apk add --no-cache \
+    bash \
+    git \
+    openssl \
+    zlib \
   && rm -rf /root/.cache \
   && rm -rf /var/cache/apk/* \
   && rm -rf /tmp/*
 
-FROM beardedeagle/alpine-erlang-builder:23.1.2 as deps_stage
+FROM beardedeagle/alpine-erlang-builder:23.2.3 as deps_stage
 
-ENV ELIXIR_VER=1.11.2 \
-  HEX_VER=0.20.6 \
-  REBAR3_VER=3.14.1 \
+ENV ELIXIR_VER=1.11.3 \
+  HEX_VER=0.21.1 \
+  REBAR3_VER=3.14.3 \
   MIX_HOME=/usr/local/lib/elixir/.mix \
   TERM=xterm \
   LANG=C.UTF-8
@@ -49,7 +53,7 @@ FROM deps_stage as elixir_stage
 
 RUN set -xe \
   && ELIXIR_DOWNLOAD_URL="https://github.com/elixir-lang/elixir/archive/v${ELIXIR_VER}.tar.gz" \
-  && ELIXIR_DOWNLOAD_SHA256="318f0a6cb372186b0cf45d2e9c9889b4c9e941643fd67ca0ab1ec32710ab6bf5" \
+  && ELIXIR_DOWNLOAD_SHA256="d961305e893f4fe1a177fa00233762c34598bc62ff88b32dcee8af27e36f0564" \
   && curl -fSL -o elixir-src.tar.gz "${ELIXIR_DOWNLOAD_URL}" \
   && echo "${ELIXIR_DOWNLOAD_SHA256}  elixir-src.tar.gz" | sha256sum -c - \
   && export ELIXIR_TOP="/usr/src/elixir_src_${ELIXIR_VER%%@*}" \
@@ -70,7 +74,7 @@ FROM elixir_stage as hex_stage
 
 RUN set -xe \
   && HEX_DOWNLOAD_URL="https://github.com/hexpm/hex/archive/v${HEX_VER}.tar.gz" \
-  && HEX_DOWNLOAD_SHA256="1d7581641cecb3ad13fe9ed4f877ea605228b4c3c3312de77a074af476cc5b6b" \
+  && HEX_DOWNLOAD_SHA256="e44790ee027955baf4ff30d19634831361e6762ea9042acac8d8b18c09ea8705" \
   && curl -fSL -o hex-src.tar.gz "${HEX_DOWNLOAD_URL}" \
   && echo "${HEX_DOWNLOAD_SHA256}  hex-src.tar.gz" | sha256sum -c - \
   && mkdir -p /usr/src/hex-src \
